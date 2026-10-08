@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -9,6 +9,39 @@ import { ShieldCheck, Ticket, Clock, AlertTriangle, QrCode } from 'lucide-react'
 import Link from 'next/link';
 
 export default function SecurityDashboardPage() {
+  const [activities, setActivities] = useState<any[]>(DEMO_GATE_ACTIVITY);
+  const [stats, setStats] = useState({
+    totalScansToday: 482,
+    activeDayPasses: 12,
+    curfewBreaches: 3,
+  });
+
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/gate-activity'),
+      fetch('/api/gate-passes'),
+    ])
+      .then(async ([actRes, passRes]) => {
+        if (actRes.ok) {
+          const actData = await actRes.json();
+          if (actData.activities && actData.activities.length > 0) {
+            setActivities(actData.activities);
+          }
+        }
+        if (passRes.ok) {
+          const passData = await passRes.json();
+          if (passData.stats) {
+            setStats({
+              totalScansToday: passData.stats.totalScansToday || 482,
+              activeDayPasses: passData.stats.activeOutside || 12,
+              curfewBreaches: passData.stats.expired || 3,
+            });
+          }
+        }
+      })
+      .catch((err) => console.warn('Could not fetch security live stats:', err));
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="bg-slate-900 text-white p-6 rounded-xl shadow-sm border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -33,9 +66,9 @@ export default function SecurityDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Scans Today" value="482" icon={ShieldCheck} badge={{ text: "Active", type: "positive" }} />
-        <StatCard title="Active Day Passes" value="12" icon={Ticket} badge={{ text: "Outside", type: "neutral" }} />
-        <StatCard title="Curfew Breaches" value="3" icon={AlertTriangle} badge={{ text: "Flagged", type: "danger" }} />
+        <StatCard title="Total Scans Today" value={String(stats.totalScansToday)} icon={ShieldCheck} badge={{ text: "Active", type: "positive" }} />
+        <StatCard title="Active Day Passes" value={String(stats.activeDayPasses)} icon={Ticket} badge={{ text: "Outside", type: "neutral" }} />
+        <StatCard title="Curfew Breaches" value={String(stats.curfewBreaches)} icon={AlertTriangle} badge={{ text: "Flagged", type: "danger" }} />
         <StatCard title="Main Gate Scanner" value="Online" icon={QrCode} badge={{ text: "Operational", type: "positive" }} />
       </div>
 
@@ -56,13 +89,13 @@ export default function SecurityDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
-              {DEMO_GATE_ACTIVITY.map((act) => (
+              {activities.slice(0, 10).map((act) => (
                 <tr key={act.id}>
                   <td className="py-2 px-3 font-semibold text-slate-900">{act.studentName} ({act.studentId})</td>
                   <td className="py-2 px-3">{act.gate}</td>
                   <td className="py-2 px-3 font-bold text-indigo-600">{act.type}</td>
                   <td className="py-2 px-3 text-slate-500">{act.timestamp}</td>
-                  <td className="py-2 px-3"><StatusBadge status={act.status} size="sm" /></td>
+                  <td className="py-2 px-3"><StatusBadge status={act.status || 'Verified'} size="sm" /></td>
                 </tr>
               ))}
             </tbody>

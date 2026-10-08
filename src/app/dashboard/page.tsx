@@ -40,6 +40,7 @@ export default function DashboardPage() {
   const [hostels, setHostels] = useState<Hostel[]>(DEMO_HOSTELS as any);
   const [overview, setOverview] = useState<AdminOverviewStats | null>(null);
   const [liveComplaints, setLiveComplaints] = useState<Complaint[]>([]);
+  const [liveGateActivity, setLiveGateActivity] = useState<any[]>(DEMO_GATE_ACTIVITY);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -47,10 +48,11 @@ export default function DashboardPage() {
     setLoading(true);
     setFetchError(null);
     try {
-      const [hRes, oRes, cRes] = await Promise.all([
+      const [hRes, oRes, cRes, gRes] = await Promise.all([
         fetch('/api/hostels'),
         fetch('/api/admin/overview'),
         fetch('/api/complaints'),
+        fetch('/api/gate-activity'),
       ]);
 
       if (hRes.ok) {
@@ -71,6 +73,13 @@ export default function DashboardPage() {
         const cData = await cRes.json();
         if (cData.complaints && cData.complaints.length > 0) {
           setLiveComplaints(cData.complaints);
+        }
+      }
+
+      if (gRes.ok) {
+        const gData = await gRes.json();
+        if (gData.activities && gData.activities.length > 0) {
+          setLiveGateActivity(gData.activities);
         }
       }
     } catch (err: any) {
@@ -574,7 +583,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {DEMO_GATE_ACTIVITY.map((act) => (
+                {liveGateActivity.slice(0, 5).map((act) => (
                   <tr key={act.id} className="hover:bg-slate-50/80 transition-colors">
                     <td className="py-2.5 px-3">
                       <p className="font-semibold text-slate-900">{act.studentName}</p>
@@ -584,7 +593,9 @@ export default function DashboardPage() {
                     <td className="py-2.5 px-3">
                       <span
                         className={`font-semibold ${
-                          act.type === 'Check-in' ? 'text-indigo-600' : 'text-slate-600'
+                          act.type === 'Check-in' || act.type === 'CHECK_IN'
+                            ? 'text-indigo-600'
+                            : 'text-slate-600'
                         }`}
                       >
                         {act.type}
@@ -592,7 +603,7 @@ export default function DashboardPage() {
                     </td>
                     <td className="py-2.5 px-3 font-medium text-slate-500">{act.timestamp}</td>
                     <td className="py-2.5 px-3">
-                      <StatusBadge status={act.status} size="sm" />
+                      <StatusBadge status={act.status || 'Verified'} size="sm" />
                     </td>
                   </tr>
                 ))}

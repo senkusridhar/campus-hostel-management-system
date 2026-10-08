@@ -41,6 +41,7 @@ export default function WardenDashboardPage() {
   });
 
   const [complaints, setComplaints] = useState<any[]>(DEMO_COMPLAINTS);
+  const [gatePasses, setGatePasses] = useState<any[]>(DEMO_GATE_PASSES);
   const [feedbackAvg, setFeedbackAvg] = useState<number>(4.4);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -49,10 +50,11 @@ export default function WardenDashboardPage() {
     setLoading(true);
     setFetchError(null);
     try {
-      const [statsRes, complaintsRes, feedbackRes] = await Promise.all([
+      const [statsRes, complaintsRes, feedbackRes, gateRes] = await Promise.all([
         fetch('/api/warden/room-stats'),
         fetch('/api/complaints'),
         fetch('/api/monthly-feedback/analytics?month=10&year=2026'),
+        fetch('/api/gate-passes?status=PENDING'),
       ]);
 
       if (statsRes.ok) {
@@ -73,6 +75,13 @@ export default function WardenDashboardPage() {
         const fData = await feedbackRes.json();
         if (fData.analytics?.overallAverage) {
           setFeedbackAvg(fData.analytics.overallAverage);
+        }
+      }
+
+      if (gateRes.ok) {
+        const gData = await gateRes.json();
+        if (gData.gatePasses && gData.gatePasses.length > 0) {
+          setGatePasses(gData.gatePasses);
         }
       }
     } catch (err) {
@@ -318,7 +327,7 @@ export default function WardenDashboardPage() {
             </Link>
           </div>
           <div className="divide-y divide-slate-100 text-xs">
-            {DEMO_GATE_PASSES.slice(0, 3).map((gp) => (
+            {gatePasses.slice(0, 3).map((gp) => (
               <div key={gp.id} className="py-2.5 flex items-center justify-between">
                 <div>
                   <p className="font-semibold text-slate-900">

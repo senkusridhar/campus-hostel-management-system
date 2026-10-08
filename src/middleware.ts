@@ -8,7 +8,7 @@ export async function middleware(req: NextRequest) {
   // 1. Skip Next.js internal files, static assets, and favicon
   if (
     pathname.startsWith('/_next') ||
-    pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api') ||
     pathname === '/favicon.ico' ||
     pathname.match(/\.(png|jpg|jpeg|svg|gif|webp|ico|css|js)$/)
   ) {
