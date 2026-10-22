@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 
 console.log('====================================================');
-console.log('CAMPUS HMS: EXECUTING FULL TEST SUITE (PHASES 3, 4, 5, 6, 8.1)');
+console.log('CAMPUS HMS: EXECUTING FULL TEST SUITE (PHASES 3, 4, 5, 6, 8.1, 8.2)');
 console.log('====================================================\n');
 
 try {
@@ -20,8 +20,11 @@ try {
   console.log('\n>>> RUNNING PHASE 8.1: GATE PASS & SECURITY MANAGEMENT TESTS');
   execSync('node --max-old-space-size=4096 node_modules/tsx/dist/cli.mjs test-phase8.ts', { stdio: 'inherit' });
 
+  console.log('\n>>> RUNNING PHASE 8.2: FINANCE & ACCOUNTS MANAGEMENT TESTS');
+  execSync('node --max-old-space-size=4096 node_modules/tsx/dist/cli.mjs test-phase8-2.ts', { stdio: 'inherit' });
+
   console.log('\n====================================================');
-  console.log('🎉 ALL INTEGRATION SUITES (PHASES 3 - 8.1) PASSED 100%!');
+  console.log('🎉 ALL INTEGRATION SUITES (PHASES 3 - 8.2) PASSED 100%!');
   console.log('====================================================');
 } catch (error) {
   console.error('Test execution failed:', error);

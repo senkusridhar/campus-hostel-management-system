@@ -68,18 +68,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. User Lookup (Prisma Database with Demo Store Resilience)
+    // 3. User Lookup from PostgreSQL (Fail-Closed)
     let user: {
       id: string;
       name: string;
       email: string;
-      passwordHash?: string;
+      passwordHash: string;
       role: string;
       phone: string | null;
       isActive: boolean;
     } | null = null;
 
-    let dbAvailable = true;
     try {
       user = await prisma.user.findUnique({
         where: { email: cleanEmail },
@@ -93,16 +92,44 @@ export async function POST(req: NextRequest) {
           isActive: true,
         },
       });
-    } catch (dbErr) {
-      console.warn('Database query failed or remote server unreachable. Checking demo accounts...', dbErr);
-      dbAvailable = false;
+    } catch {
+      console.error('PostgreSQL lookup failed during authentication [Database Unavailable]');
+      return NextResponse.json(
+        { error: 'Authentication service temporarily unavailable. Please try again later.' },
+        { status: 503 }
+      );
     }
 
-    // If database was offline or user not found in DB, check fallback demo user store
-    if (!user && DEMO_USERS[cleanEmail]) {
-      const demoAccount = DEMO_USERS[cleanEmail];
-      const isDemoPasswordValid = password === DEMO_PASSWORD;
-      if (!isDemoPasswordValid) {
+    // 4. Verification & Fallback Gating
+    // Demo account fallback is disabled by default in all environments and strictly forbidden in production
+    const isProd = process.env.NODE_ENV === 'production';
+    const allowDemoFallback = !isProd && process.env.ENABLE_DEMO_FALLBACK === 'true';
+
+    if (!user) {
+      if (allowDemoFallback && DEMO_USERS[cleanEmail]) {
+        const demoAccount = DEMO_USERS[cleanEmail];
+        const isDemoPasswordValid = password === DEMO_PASSWORD;
+        if (!isDemoPasswordValid) {
+          const remaining = recordFailedAttempt(rateLimitKey);
+          return NextResponse.json(
+            {
+              error: remaining > 0
+                ? `Invalid credentials. (${remaining} attempts remaining)`
+                : 'Invalid credentials. Account locked temporarily.',
+            },
+            { status: 401 }
+          );
+        }
+        user = {
+          id: demoAccount.id,
+          name: demoAccount.name,
+          email: demoAccount.email,
+          passwordHash: '',
+          role: demoAccount.role,
+          phone: demoAccount.phone,
+          isActive: demoAccount.isActive,
+        };
+      } else {
         const remaining = recordFailedAttempt(rateLimitKey);
         return NextResponse.json(
           {
@@ -113,26 +140,27 @@ export async function POST(req: NextRequest) {
           { status: 401 }
         );
       }
-      user = {
-        id: demoAccount.id,
-        name: demoAccount.name,
-        email: demoAccount.email,
-        role: demoAccount.role,
-        phone: demoAccount.phone,
-        isActive: demoAccount.isActive,
-      };
-    } else if (!user || !user.isActive) {
-      const remaining = recordFailedAttempt(rateLimitKey);
-      return NextResponse.json(
-        {
-          error: remaining > 0
-            ? `Invalid credentials. (${remaining} attempts remaining)`
-            : 'Invalid credentials. Account locked temporarily.',
-        },
-        { status: 401 }
-      );
-    } else if (dbAvailable && user.passwordHash) {
-      // 4. Verify Password Hash with bcrypt
+    } else {
+      // User exists in PostgreSQL: strictly validate against database password hash
+      if (!user.isActive) {
+        return NextResponse.json(
+          { error: 'Account has been deactivated. Please contact the administrator.' },
+          { status: 403 }
+        );
+      }
+
+      if (!user.passwordHash) {
+        const remaining = recordFailedAttempt(rateLimitKey);
+        return NextResponse.json(
+          {
+            error: remaining > 0
+              ? `Invalid credentials. (${remaining} attempts remaining)`
+              : 'Invalid credentials. Account locked temporarily.',
+          },
+          { status: 401 }
+        );
+      }
+
       const isValidPassword = await comparePassword(password, user.passwordHash);
       if (!isValidPassword) {
         const remaining = recordFailedAttempt(rateLimitKey);
@@ -145,14 +173,6 @@ export async function POST(req: NextRequest) {
           { status: 401 }
         );
       }
-    }
-
-    if (!user) {
-      const remaining = recordFailedAttempt(rateLimitKey);
-      return NextResponse.json(
-        { error: `Invalid credentials. (${remaining} attempts remaining)` },
-        { status: 401 }
-      );
     }
 
     // 5. Portal Role Authorization Check
@@ -213,8 +233,8 @@ export async function POST(req: NextRequest) {
     });
 
     return response;
-  } catch (error) {
-    console.error('Authentication error:', error);
+  } catch {
+    console.error('Authentication error [Internal Error]');
     return NextResponse.json(
       { error: 'An unexpected authentication error occurred. Please try again.' },
       { status: 500 }

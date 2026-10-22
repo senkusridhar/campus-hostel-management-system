@@ -10,6 +10,8 @@ export type StatusVariant =
   | 'good'
   | 'pending'
   | 'partially_occupied'
+  | 'partially_paid'
+  | 'waived'
   | 'assigned'
   | 'in_progress'
   | 'applied'
@@ -62,6 +64,8 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
 
       case 'pending':
       case 'partially_occupied':
+      case 'partially_paid':
+      case 'waived':
       case 'assigned':
       case 'in_progress':
       case 'applied':

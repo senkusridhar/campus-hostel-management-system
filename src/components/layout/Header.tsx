@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Search,
   Bell,
@@ -9,6 +10,7 @@ import {
   ChevronDown,
   User as UserIcon,
   Shield,
+  KeyRound,
   LogOut,
   Sliders,
   HelpCircle,
@@ -192,6 +194,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileSidebar }) => {
                   <Shield className="w-3.5 h-3.5 text-slate-400" />
                   Role & Permissions
                 </button>
+                <Link
+                  href="/change-password"
+                  onClick={() => setShowProfileMenu(false)}
+                  className="w-full px-4 py-2 text-left text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2 transition-colors"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-slate-400" />
+                  Change Password
+                </Link>
               </div>
               <div className="border-t border-slate-100 pt-1">
                 <button

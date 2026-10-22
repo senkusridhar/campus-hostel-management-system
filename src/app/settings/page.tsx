@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
-import { Building, Sliders, Bell, Calendar, Shield, Save } from 'lucide-react';
+import Link from 'next/link';
+import { Building, Sliders, Bell, Calendar, Shield, Save, KeyRound } from 'lucide-react';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<'institution' | 'hostel' | 'academic' | 'notifications' | 'system'>('institution');
@@ -195,9 +196,22 @@ export default function SettingsPage() {
         )}
 
         {activeTab === 'system' && (
-          <div className="space-y-3 text-xs">
-            <h3 className="text-base font-bold text-slate-900 border-b pb-2">System Maintenance & Logs</h3>
+          <div className="space-y-4 text-xs">
+            <h3 className="text-base font-bold text-slate-900 border-b pb-2">System Maintenance & Security</h3>
             <p className="text-slate-500">UI configuration mode enabled. Settings are currently pre-populated for demonstration.</p>
+            <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-slate-800">Account Security & Credentials</p>
+                <p className="text-slate-500 text-[11px] mt-0.5">Update your institutional account password and authentication credentials.</p>
+              </div>
+              <Link
+                href="/change-password"
+                className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+                Change Password
+              </Link>
+            </div>
           </div>
         )}
 

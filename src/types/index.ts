@@ -337,7 +337,7 @@ export interface FeedbackAnalyticsData {
   }[];
 }
 
-export type FeeStatus = 'Paid' | 'Pending' | 'Overdue';
+export type FeeStatus = 'Paid' | 'Pending' | 'Overdue' | 'Partially Paid';
 
 export interface FeeRecord {
   id: string;
@@ -345,12 +345,154 @@ export interface FeeRecord {
   studentName: string;
   studentId: string;
   hostel: string;
-  feeType: 'Hostel Fee' | 'Mess Fee' | 'Maintenance Deposit' | 'Late Fine' | 'Damage Fine';
+  feeType: 'Hostel Fee' | 'Mess Fee' | 'Maintenance Deposit' | 'Late Fine' | 'Damage Fine' | string;
   amount: number;
   dueDate: string;
   paymentDate?: string;
-  paymentMethod?: 'UPI' | 'Net Banking' | 'Credit/Debit Card' | 'Challan';
+  paymentMethod?: 'UPI' | 'Net Banking' | 'Credit/Debit Card' | 'Challan' | string;
   status: FeeStatus;
+  invoiceNumber?: string;
+  paidAmount?: number;
+  balanceDue?: number;
+}
+
+export interface FeeItem {
+  id: string;
+  invoiceNumber: string;
+  studentId: string;
+  studentDbId?: string;
+  studentName: string;
+  studentRegNo: string;
+  department?: string;
+  hostel: string;
+  hostelId?: string;
+  roomNo?: string;
+  feeType: 'Hostel Fee' | 'Mess Fee' | 'Security Deposit' | 'Late Fine' | 'Damage Fine' | 'Other';
+  description?: string;
+  academicTerm?: string;
+  amount: number;
+  paidAmount: number;
+  balanceDue: number;
+  dueDate: string;
+  issueDate: string;
+  status: FeeStatus;
+  createdAt: string;
+  paymentsCount?: number;
+}
+
+export interface PaymentRecord {
+  id: string;
+  receiptNumber: string;
+  feeId: string;
+  invoiceNumber: string;
+  studentId: string;
+  studentName: string;
+  studentRegNo: string;
+  hostel: string;
+  feeType: string;
+  amount: number;
+  paymentMethod: 'UPI' | 'Net Banking' | 'Card' | 'Challan' | 'Cash';
+  transactionReference: string;
+  paidAt: string;
+  verifiedById?: string;
+  verifiedByName?: string;
+  status: 'VERIFIED' | 'PENDING' | 'REJECTED' | 'FAILED';
+  notes?: string;
+}
+
+export interface InvoiceLineItem {
+  description: string;
+  amount: number;
+}
+
+export interface InvoiceRecord {
+  id: string;
+  invoiceNumber: string;
+  feeId: string;
+  studentId: string;
+  studentName: string;
+  studentRegNo: string;
+  department: string;
+  hostel: string;
+  roomNo: string;
+  feeType: string;
+  description: string;
+  academicTerm: string;
+  issueDate: string;
+  dueDate: string;
+  lineItems: InvoiceLineItem[];
+  subtotal: number;
+  taxAmount: number;
+  totalAmount: number;
+  paidAmount: number;
+  balanceDue: number;
+  status: FeeStatus;
+  payments: Array<{
+    receiptNumber: string;
+    amount: number;
+    paymentMethod: string;
+    paidAt: string;
+    transactionReference?: string;
+  }>;
+}
+
+export type FineStatusType = 'PENDING' | 'PAID' | 'WAIVED' | 'OVERDUE' | 'Pending' | 'Paid' | 'Waived' | 'Overdue';
+
+export interface FineRecord {
+  id: string;
+  studentId: string;
+  studentName: string;
+  studentRegNo: string;
+  hostel: string;
+  roomNo: string;
+  category: 'Discipline' | 'Property Damage' | 'Curfew Violation' | 'Mess Violation' | 'Noise Complaint' | 'Other';
+  reason: string;
+  amount: number;
+  status: FineStatusType;
+  issuedById: string;
+  issuedByName: string;
+  issuedByRole: string;
+  issuedAt: string;
+  paidAt?: string | null;
+  feeId?: string | null;
+  receiptNumber?: string | null;
+  waiveReason?: string | null;
+}
+
+export interface ReceiptRecord {
+  id: string;
+  receiptNumber: string;
+  invoiceNumber: string;
+  feeId: string;
+  studentId: string;
+  studentName: string;
+  studentRegNo: string;
+  department: string;
+  hostel: string;
+  roomNo: string;
+  amount: number;
+  amountInWords: string;
+  feeType: string;
+  paymentMethod: string;
+  transactionReference: string;
+  paidAt: string;
+  verifiedBy: string;
+  status: 'VERIFIED';
+  isPersisted?: boolean;
+  storage?: string;
+}
+
+export interface FinanceOverviewStats {
+  totalCollections: number;
+  pendingDues: number;
+  overdueAmount: number;
+  todayCollections: number;
+  totalTransactions: number;
+  pendingInvoicesCount: number;
+  activeFinesCount: number;
+  targetCollectionRate: number;
+  collectionsByFeeType: Record<string, number>;
+  monthlyTrends: Array<{ month: string; collected: number; target: number }>;
 }
 
 export interface MessMenuItem {

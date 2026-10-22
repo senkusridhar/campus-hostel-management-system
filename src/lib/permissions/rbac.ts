@@ -146,6 +146,9 @@ const ROUTE_PERMISSIONS: { pattern: RegExp; allowedRoles: string[] }[] = [
 
   // Notices (Accessible to all authenticated roles)
   { pattern: /^\/notices(\/.*)?$/, allowedRoles: ['SUPER_ADMIN', 'WARDEN', 'STUDENT', 'PARENT', 'SECURITY', 'FINANCE', 'ACCOUNTANT', 'MAINTENANCE'] },
+
+  // Account Security & Password (Accessible to all authenticated roles)
+  { pattern: /^\/change-password(\/.*)?$/, allowedRoles: ['SUPER_ADMIN', 'WARDEN', 'STUDENT', 'PARENT', 'SECURITY', 'FINANCE', 'ACCOUNTANT', 'MAINTENANCE'] },
 ];
 
 export function getRoleDashboardRoute(role: string): string {
