@@ -225,3 +225,20 @@ campus-hostel-management-system/
 ├── package.json
 ├── prisma/
 └── README.md
+---
+
+## Screenshots
+
+The following screenshots show the Super Admin portal and selected sections of the Campus Hostel Management System dashboard.
+
+### 1. Super Admin Portal
+
+![Campus HMS Super Admin portal](docs/screenshots/dashboard-admin.png)
+
+### 2. Hostel Statistics and Resident Feedback
+
+![Hostel statistics and resident feedback](docs/screenshots/dashboard-statistics-feedback.png)
+
+### 3. Recent Activity, Notices, and Maintenance Tickets
+
+![Dashboard activity and maintenance tickets](docs/screenshots/dashboard-activity-tickets.png)
