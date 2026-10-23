@@ -17,6 +17,7 @@ function assert(condition: boolean, message: string) {
   }
 }
 
+
 async function loginAndGetCookie(email: string, role: string): Promise<string> {
   const res = await fetch(`${BASE_URL}/api/auth/login`, {
     method: 'POST',
@@ -25,15 +26,18 @@ async function loginAndGetCookie(email: string, role: string): Promise<string> {
       email,
       password:
         email === 'admin@campushms.local'
-          ? process.env.HMS_TEST_ADMIN_PASSWORD
+          ? 'Campus@123'
           : 'CampusHMS@2026',
       portalRole: role,
     }),
   });
 
   const cookie = res.headers.get('set-cookie');
+
   if (!cookie) {
-    throw new Error(`Failed to login for ${email} with role ${role}, status: ${res.status}`);
+    throw new Error(
+      `Failed to login for ${email} with role ${role}, status: ${res.status}`
+    );
   }
 
   const match = cookie.match(/hms_session=([^;]+)/);
